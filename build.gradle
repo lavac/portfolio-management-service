@@ -1,0 +1,50 @@
+plugins {
+	id 'org.springframework.boot' version '2.6.1'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
+	implementation 'org.postgresql:postgresql:42.2.14'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.data:spring-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.hsqldb:hsqldb'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'io.springfox:springfox-swagger2:3.0.0'
+//	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+	implementation 'io.springfox:springfox-oas:3.0.0'
+//	implementation 'io.swagger:swagger-annotations:1.5.21'
+//	implementation 'io.swagger:swagger-models:1.5.21'
+	implementation 'org.modelmapper:modelmapper:1.1.0'
+	implementation 'org.hibernate:hibernate-java8:5.1.0.Final'
+	implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+}
+
+test {
+	useJUnitPlatform()
+}
