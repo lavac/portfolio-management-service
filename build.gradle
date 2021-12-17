@@ -8,6 +8,16 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
+jar {
+	manifest {
+		attributes(
+				'Main-Class': 'com.smallcase.portfolio.PortfolioManagementApplication'
+		)
+	}
+}
+
+mainClassName = 'com.smallcase.portfolio.PortfolioManagementApplication'
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
