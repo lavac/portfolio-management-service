@@ -16,8 +16,6 @@ jar {
 	}
 }
 
-mainClassName = 'com.smallcase.portfolio.PortfolioManagementApplication'
-
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
