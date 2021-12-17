@@ -1,1 +1,1 @@
-web: java -cp target/classes:target/dependency/* com.smallcase.portfolio.PortfolioManagementApplication server src/main/resources/application.properties
+web: java -Dserver.port=$PORT -jar build/libs/portfolio-management-service-0.0.1-SNAPSHOT.jar
