@@ -16,8 +16,6 @@ jar {
 	}
 }
 
-mainClassName = 'main.java.com.smallcase.portfolio.PortfolioManagementApplication'
-
 task fatJar(type: Jar) {
 	manifest.from jar.manifest
 //    classifier = 'all'
