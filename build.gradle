@@ -59,7 +59,8 @@ dependencies {
 //	implementation 'io.swagger:swagger-annotations:1.5.21'
 //	implementation 'io.swagger:swagger-models:1.5.21'
 	implementation 'org.modelmapper:modelmapper:1.1.0'
-	implementation 'org.hibernate:hibernate-java8:5.1.0.Final'
+	implementation 'org.hibernate:hibernate-java8:5.2.3.Final'
+	implementation 'org.hibernate:hibernate-entitymanager:5.2.3.Final'
 	implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
