@@ -11,10 +11,6 @@ import java.util.Optional;
 @Repository
 public interface SecurityRepository extends CrudRepository<SecurityInfo, Integer> {
 
-  Optional<SecurityInfo> findByTickerSymbol(String tickerSymbol);
-
-  Optional<SecurityInfo> findByIdOrPortfolio(Integer securityId, Portfolio portfolio);
-
   Optional<SecurityInfo> findByIdAndTickerSymbol(Integer securityId, String portfolio);
 
   Optional<SecurityInfo> findByTickerSymbolAndPortfolio(String tickerSymbol, Portfolio portfolio);

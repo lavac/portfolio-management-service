@@ -1,8 +1,10 @@
 package com.smallcase.portfolio.service;
 
+import com.smallcase.portfolio.controller.dto.AggregatedSecurityInformation;
 import com.smallcase.portfolio.controller.dto.TradeCreateRequest;
 import com.smallcase.portfolio.controller.dto.TradeUpdateRequest;
 import com.smallcase.portfolio.exception.*;
+import com.smallcase.portfolio.model.TradeType;
 import com.smallcase.portfolio.repository.PortfolioRepository;
 import com.smallcase.portfolio.repository.SecurityRepository;
 import com.smallcase.portfolio.repository.TradeRepository;
@@ -26,55 +28,47 @@ public class TradeService {
   @Autowired
   PortfolioRepository portfolioRepository;
 
-  public Trade add(Integer portFolioId, Integer securityId, TradeCreateRequest tradeCreateRequest) {
+  public Trade add(Integer portFolioId, String tickerSymbol, TradeCreateRequest tradeCreateRequest) {
     Portfolio portfolio = portfolioRepository.findById(portFolioId)
         .orElseThrow(() -> new NoPortfolioFoundException("No Portfolio found exception"));
 
-    SecurityInfo securityInfo;
-
-    if (securityId != null) {
       SecurityInfo existingSecurity = securityRepository
-          .findByIdAndTickerSymbol(securityId, tradeCreateRequest.getTickerSymbol())
-          .orElseThrow(() -> new NoSecurityFoundException("No Security found exception"));
-      securityInfo = getUpdatedSecurityInfo(existingSecurity, tradeCreateRequest);
-    }
-    else {
-      SecurityInfo existingSecurity = securityRepository
-          .findByTickerSymbolAndPortfolio(tradeCreateRequest.getTickerSymbol(), portfolio)
+          .findByTickerSymbolAndPortfolio(tickerSymbol, portfolio)
           .orElse(null);
 
       SecurityInfo updatedSecurityInfo = (existingSecurity != null)
       ? getUpdatedSecurityInfo(existingSecurity, tradeCreateRequest)
-          : getNewSecurityInfo(tradeCreateRequest, portfolio);
-      securityInfo = securityRepository.save(updatedSecurityInfo);
-    }
+          : getNewSecurityInfo(tickerSymbol, tradeCreateRequest, portfolio);
+      securityRepository.save(updatedSecurityInfo);
 
       Trade trade = Trade.builder()
-          .tradeType(tradeCreateRequest.getTradeType())
+          .tradeType(tradeCreateRequest.getTradeType().toString())
           .numberOfShares(tradeCreateRequest.getNumberOfShares())
-          .price(tradeCreateRequest.getPricePerShare())
-          .security(securityInfo)
+          .price(tradeCreateRequest.getPricePerShare().doubleValue())
+          .portfolioId(portFolioId)
+          .security(updatedSecurityInfo)
           .build();
 
       return tradeRepository.save(trade);
   }
 
-  private SecurityInfo getNewSecurityInfo(TradeCreateRequest tradeCreateRequest, Portfolio portfolio) {
+  private SecurityInfo getNewSecurityInfo(String tickerSymbol, TradeCreateRequest tradeCreateRequest, Portfolio portfolio) {
     return SecurityInfo
         .builder()
-        .tickerSymbol(tradeCreateRequest.getTickerSymbol())
+        .tickerSymbol(tickerSymbol)
         .portfolio(portfolio)
-        .averagePrice(tradeCreateRequest.getPricePerShare())
+        .averagePrice(tradeCreateRequest.getPricePerShare().doubleValue())
         .numberOfShares(tradeCreateRequest.getNumberOfShares())
         .build();
   }
 
   private SecurityInfo getUpdatedSecurityInfo(SecurityInfo security, TradeCreateRequest tradeCreateRequest) {
-    if(tradeCreateRequest.getTradeType().equals("BUY")) {
+    if(tradeCreateRequest.getTradeType().equals(TradeType.BUY)) {
       security.setAveragePrice(
-          calculateAveragePrice(security, tradeCreateRequest.getNumberOfShares(), tradeCreateRequest.getPricePerShare()));
+          calculateAveragePrice(security, tradeCreateRequest.getNumberOfShares(),
+              tradeCreateRequest.getPricePerShare().doubleValue()));
       security.setNumberOfShares(security.getNumberOfShares() + tradeCreateRequest.getNumberOfShares());
-    } else if(tradeCreateRequest.getTradeType().equals("SELL")) {
+    } else if(tradeCreateRequest.getTradeType().equals(TradeType.SELL)) {
       int numberOfShares = security.getNumberOfShares() - tradeCreateRequest.getNumberOfShares();
       if (numberOfShares < 0)
         throw new SecuritySellException("Requested number of shares to sell are more than the actual number of shares");
@@ -106,26 +100,35 @@ public class TradeService {
         + (numberOfShares * pricePerShare);
   }
 
-  public HashMap<Integer, List<Trade>> findAll() {
-    HashMap<Integer, List<Trade>> securityTradesMap = new HashMap<>();
+  public List<AggregatedSecurityInformation> findAllByPortfolioId(Integer portFolioId) {
+    HashMap<String, List<Trade>> securityTradesMap = new HashMap<>();
 
-    tradeRepository.findAll()
+    tradeRepository.findByPortfolioId(portFolioId)
         .forEach((Trade trade) -> {
           SecurityInfo security = trade.getSecurity();
-          Integer id = security.getId();
-          if (securityTradesMap.containsKey(id)) {
-            List<Trade> trades = securityTradesMap.get(id);
+          String tickerSymbol = security.getTickerSymbol();
+          if (securityTradesMap.containsKey(tickerSymbol)) {
+            List<Trade> trades = securityTradesMap.get(tickerSymbol);
             trades.add(trade);
-            securityTradesMap.put(id, trades);
+            securityTradesMap.put(tickerSymbol, trades);
           } else {
             ArrayList<Trade> trades = new ArrayList<>();
             trades.add(trade);
-            securityTradesMap.put(id, trades);
+            securityTradesMap.put(tickerSymbol, trades);
           }
         });
-    // TODO form object
-    return securityTradesMap;
+    ArrayList<AggregatedSecurityInformation> aggregatedSecurities = new ArrayList<>();
+    securityTradesMap.forEach((tickerSymbol, trades) -> {
+      AggregatedSecurityInformation aggregatedSecurityInformation = AggregatedSecurityInformation
+          .builder()
+          .tickerSymbol(tickerSymbol)
+          .trades(trades)
+          .build();
+      aggregatedSecurities.add(aggregatedSecurityInformation);
+    });
+    return aggregatedSecurities;
   }
+
   public Trade update(Integer updateId, TradeUpdateRequest tradeUpdateRequest) {
     Trade existingTrade = tradeRepository.findById(updateId)
         .orElseThrow(() -> new TradeIdNotFoundException("Trade Id not found exception"));
@@ -139,7 +142,7 @@ public class TradeService {
     SecurityInfo securityInfo = recoverPreExistingSecurity(existingTrade);
 
     if(tradeUpdateRequest.getTradeType() != null) {
-        mergedTrade.setTradeType(tradeUpdateRequest.getTradeType());
+        mergedTrade.setTradeType(tradeUpdateRequest.getTradeType().toString());
       } if (tradeUpdateRequest.getNumberOfShares() != null) {
         mergedTrade.setNumberOfShares(tradeUpdateRequest.getNumberOfShares());
     } if (tradeUpdateRequest.getPricePerShare() != null) {
@@ -167,6 +170,9 @@ public class TradeService {
           existingTrade.getNumberOfShares(), existingTrade.getTradeType());
       Double preExistingAveragePrice = getPreExistingAveragePriceForBuyType(existingTrade,
           preExistingNumberOfShares);
+      if (preExistingAveragePrice <= 0.0 || preExistingNumberOfShares < 0) {
+        throw new InvalidTradeOperation("Cannot update or remove this trade");
+      }
       security.setNumberOfShares(preExistingNumberOfShares);
       security.setAveragePrice(preExistingAveragePrice);
     } else {

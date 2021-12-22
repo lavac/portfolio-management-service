@@ -1,25 +1,25 @@
 package com.smallcase.portfolio.controller;
 
+import com.smallcase.portfolio.controller.dto.AggregatedPortfolioInformation;
+import com.smallcase.portfolio.controller.dto.AggregatedSecurityInformation;
 import com.smallcase.portfolio.controller.dto.TradeCreateRequest;
 import com.smallcase.portfolio.controller.dto.TradeUpdateRequest;
-import com.smallcase.portfolio.repository.PortfolioRepository;
-import com.smallcase.portfolio.repository.entity.SecurityInfo;
 import com.smallcase.portfolio.service.PortfolioService;
 import com.smallcase.portfolio.service.TradeService;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.smallcase.portfolio.repository.entity.Trade;
 
-import java.util.HashMap;
+import javax.validation.Valid;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/portfolio")
 public class PortfolioManagementController {
-
-  @Autowired
-  PortfolioRepository portfolioRepository;
 
   @Autowired
   TradeService tradeService;
@@ -27,37 +27,38 @@ public class PortfolioManagementController {
   @Autowired
   PortfolioService portfolioService;
 
-  @PostMapping("/{portFolioId}/securities/{securityId}/trades")
-  public ResponseEntity<Trade> addTrade(@PathVariable Integer portFolioId,
-                                        @PathVariable Integer securityId,
-                                        @RequestBody TradeCreateRequest tradeCreateRequest) {
-    return ResponseEntity.accepted().body(tradeService.add(portFolioId, securityId, tradeCreateRequest));
+  @PostMapping("/{portFolioId}/securities/{tickerSymbol}/trades")
+  public ResponseEntity<Trade> addTrade(@PathVariable @Valid @NonNull Integer portFolioId,
+                                        @PathVariable @Valid @NonNull String tickerSymbol,
+                                        @RequestBody @Valid TradeCreateRequest tradeCreateRequest) {
+    return ResponseEntity.accepted().body(tradeService.add(portFolioId, tickerSymbol, tradeCreateRequest));
   }
 
-  @GetMapping("/{portFolioId}/securities/{securityId}/trades")
-  public HashMap<Integer, List<Trade>> fetchTrades() {
-    return tradeService.findAll();
+  @GetMapping("/{portFolioId}/aggregated-securities")
+  public ResponseEntity<List<AggregatedSecurityInformation>> fetchTrades(@PathVariable @Valid @NonNull Integer portFolioId) {
+    List<AggregatedSecurityInformation> aggregatedSecurityInformation = tradeService.findAllByPortfolioId(portFolioId);
+    return ResponseEntity.accepted().body(aggregatedSecurityInformation);
   }
 
-  @PutMapping("/{portFolioId}/securities/{securityId}/trades/{tradeId}")
-  public ResponseEntity<Trade> updateTrade(@PathVariable Integer tradeId,
+  @PutMapping("/{portFolioId}/trades/{tradeId}")
+  public ResponseEntity<Trade> updateTrade(@PathVariable  @Valid @NonNull Integer tradeId,
                                            @RequestBody TradeUpdateRequest tradeUpdateRequest) {
     return ResponseEntity.accepted().body(tradeService.update(tradeId, tradeUpdateRequest));
   }
 
-  @DeleteMapping("/{portFolioId}/securities/{securityId}/trades/{tradeId}")
-  public void removeTrade(@PathVariable Integer tradeId) {
+  @DeleteMapping("/{portFolioId}/trades/{tradeId}")
+  public void removeTrade(@PathVariable @Valid @NonNull Integer tradeId) {
     tradeService.removeTradeById(tradeId);
   }
 
   @GetMapping("/{portfolioId}")
-  public ResponseEntity<List<SecurityInfo>> fetchPortfolio(@PathVariable Integer portfolioId) {
-    List<SecurityInfo> securityInfos = portfolioService.fetchPortfolio(portfolioId);
-    return ResponseEntity.accepted().body(securityInfos);
+  public ResponseEntity<List<AggregatedPortfolioInformation>> fetchPortfolio(@PathVariable @Valid @NonNull Integer portfolioId) {
+    List<AggregatedPortfolioInformation> aggregatedPortfolioInformation = portfolioService.fetchPortfolio(portfolioId);
+    return ResponseEntity.accepted().body(aggregatedPortfolioInformation);
   }
 
   @GetMapping("/{portfolioId}/returns")
-  public ResponseEntity<Double> fetchReturns(@PathVariable Integer portfolioId) {
+  public ResponseEntity<Double> fetchReturns(@PathVariable @Valid @NonNull Integer portfolioId) {
     Double returns = portfolioService.fetchReturns(portfolioId);
     return ResponseEntity.accepted().body(returns);
   }

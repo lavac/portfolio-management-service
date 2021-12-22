@@ -24,6 +24,9 @@ public class Trade {
   @Column(name = "number_of_shares")
   private Integer numberOfShares;
 
+  @Column(name = "portfolio_id")
+  private Integer portfolioId;
+
   @ManyToOne(cascade = {CascadeType.PERSIST})
   @JoinColumn(name = "security_id")
   private SecurityInfo security;
