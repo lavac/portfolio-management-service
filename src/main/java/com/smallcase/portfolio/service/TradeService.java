@@ -4,10 +4,12 @@ import com.smallcase.portfolio.controller.dto.AggregatedSecurityInformation;
 import com.smallcase.portfolio.controller.dto.TradeCreateRequest;
 import com.smallcase.portfolio.controller.dto.TradeUpdateRequest;
 import com.smallcase.portfolio.exception.*;
+import com.smallcase.portfolio.model.TradeModel;
 import com.smallcase.portfolio.repository.TradeRepository;
 import com.smallcase.portfolio.repository.entity.Portfolio;
 import com.smallcase.portfolio.repository.entity.SecurityInfo;
 import com.smallcase.portfolio.repository.entity.Trade;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +30,9 @@ public class TradeService {
   @Autowired
   PortfolioService portfolioService;
 
-  public Trade add(Integer portFolioId, String tickerSymbol, TradeCreateRequest tradeCreateRequest) {
+  ModelMapper modelMapper = new ModelMapper();
+
+  public TradeModel add(Integer portFolioId, String tickerSymbol, TradeCreateRequest tradeCreateRequest) {
     Portfolio portfolio = portfolioService.findById(portFolioId);
 
       SecurityInfo updatedSecurityInfo = securityService
@@ -42,23 +46,25 @@ public class TradeService {
           .security(updatedSecurityInfo)
           .build();
 
-      return tradeRepository.save(trade);
+    Trade savedTrade = tradeRepository.save(trade);
+    return modelMapper.map(savedTrade, TradeModel.class);
   }
 
   public List<AggregatedSecurityInformation> findAllByPortfolioId(Integer portFolioId) {
-    HashMap<String, List<Trade>> securityTradesMap = new HashMap<>();
+    HashMap<String, List<TradeModel>> securityTradesMap = new HashMap<>();
 
     tradeRepository.findByPortfolioId(portFolioId)
         .forEach((Trade trade) -> {
+          TradeModel tradeModel = modelMapper.map(trade, TradeModel.class);
           SecurityInfo security = trade.getSecurity();
           String tickerSymbol = security.getTickerSymbol();
           if (securityTradesMap.containsKey(tickerSymbol)) {
-            List<Trade> trades = securityTradesMap.get(tickerSymbol);
-            trades.add(trade);
+            List<TradeModel> trades = securityTradesMap.get(tickerSymbol);
+            trades.add(tradeModel);
             securityTradesMap.put(tickerSymbol, trades);
           } else {
-            ArrayList<Trade> trades = new ArrayList<>();
-            trades.add(trade);
+            ArrayList<TradeModel> trades = new ArrayList<>();
+            trades.add(tradeModel);
             securityTradesMap.put(tickerSymbol, trades);
           }
         });
@@ -74,7 +80,7 @@ public class TradeService {
     return aggregatedSecurities;
   }
 
-  public Trade update(Integer updateId, TradeUpdateRequest tradeUpdateRequest) {
+  public TradeModel update(Integer updateId, TradeUpdateRequest tradeUpdateRequest) {
     Trade existingTrade = tradeRepository.findById(updateId)
         .orElseThrow(() -> new TradeIdNotFoundException("Trade Id not found exception"));
 
@@ -96,7 +102,8 @@ public class TradeService {
     SecurityInfo updatedSecurityInfo = getUpdatedSecurityInfo(securityInfo, mergedTrade);
     mergedTrade.setSecurity(updatedSecurityInfo);
 
-    return tradeRepository.save(mergedTrade);
+    Trade savedTrade = tradeRepository.save(mergedTrade);
+    return modelMapper.map(savedTrade, TradeModel.class);
   }
 
   public void removeTradeById(Integer tradeId) {
