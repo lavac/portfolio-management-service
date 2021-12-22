@@ -4,6 +4,7 @@ import com.smallcase.portfolio.controller.dto.AggregatedPortfolioInformation;
 import com.smallcase.portfolio.controller.dto.AggregatedSecurityInformation;
 import com.smallcase.portfolio.controller.dto.TradeCreateRequest;
 import com.smallcase.portfolio.controller.dto.TradeUpdateRequest;
+import com.smallcase.portfolio.exception.TradeUpdateException;
 import com.smallcase.portfolio.service.PortfolioService;
 import com.smallcase.portfolio.service.TradeService;
 import lombok.NonNull;
@@ -43,7 +44,17 @@ public class PortfolioManagementController {
   @PutMapping("/{portFolioId}/trades/{tradeId}")
   public ResponseEntity<Trade> updateTrade(@PathVariable  @Valid @NonNull Integer tradeId,
                                            @RequestBody TradeUpdateRequest tradeUpdateRequest) {
+    validateTradeUpdateRequest(tradeUpdateRequest);
     return ResponseEntity.accepted().body(tradeService.update(tradeId, tradeUpdateRequest));
+  }
+
+  private void validateTradeUpdateRequest(TradeUpdateRequest tradeUpdateRequest) {
+    if (tradeUpdateRequest.getPricePerShare() != null && tradeUpdateRequest.getPricePerShare() < 1.0) {
+        throw new TradeUpdateException("pricePerShare should not be less than 1.0");
+    }
+    if (tradeUpdateRequest.getNumberOfShares() != null && tradeUpdateRequest.getNumberOfShares() <= 0) {
+      throw new TradeUpdateException("numberOfShares should not be less than 1");
+    }
   }
 
   @DeleteMapping("/{portFolioId}/trades/{tradeId}")

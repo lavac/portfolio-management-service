@@ -1,7 +1,7 @@
 package com.smallcase.portfolio.service;
 
 import com.smallcase.portfolio.controller.dto.AggregatedPortfolioInformation;
-import com.smallcase.portfolio.exception.PortfolioNotFoundException;
+import com.smallcase.portfolio.exception.NoPortfolioFoundException;
 import com.smallcase.portfolio.repository.PortfolioRepository;
 import com.smallcase.portfolio.repository.SecurityRepository;
 import com.smallcase.portfolio.repository.entity.Portfolio;
@@ -25,7 +25,7 @@ public class PortfolioService {
 
   public List<AggregatedPortfolioInformation> fetchPortfolio(Integer portfolioId) {
     Portfolio portfolio = portfolioRepository.findById(portfolioId)
-        .orElseThrow(() -> new PortfolioNotFoundException("Portfolio Id not found exception"));
+        .orElseThrow(() -> new NoPortfolioFoundException("Portfolio Id not found exception"));
 
     List<SecurityInfo> securities = securityRepository.findByPortfolio(portfolio);
 
@@ -44,7 +44,7 @@ public class PortfolioService {
 
   public Double fetchReturns(Integer portfolioId) {
     Portfolio portfolio = portfolioRepository.findById(portfolioId)
-        .orElseThrow(() -> new PortfolioNotFoundException("Portfolio Id not found exception"));
+        .orElseThrow(() -> new NoPortfolioFoundException("Portfolio Id not found exception"));
 
     List<SecurityInfo> securities = securityRepository.findByPortfolio(portfolio);
 
