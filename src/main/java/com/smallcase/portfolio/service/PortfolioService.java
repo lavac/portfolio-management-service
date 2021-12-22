@@ -23,7 +23,7 @@ public class PortfolioService {
 
   public static final Double CURRENT_PRICE = 100.00;
 
-  public List<AggregatedPortfolioInformation> fetchPortfolio(Integer portfolioId) {
+  public List<AggregatedPortfolioInformation> fetchPortfolioSummary(Integer portfolioId) {
     Portfolio portfolio = portfolioRepository.findById(portfolioId)
         .orElseThrow(() -> new NoPortfolioFoundException("Portfolio Id not found exception"));
 
@@ -53,5 +53,10 @@ public class PortfolioService {
       returns += ((CURRENT_PRICE - securityInfo.getAveragePrice()) * securityInfo.getNumberOfShares());
     }
     return returns;
+  }
+
+  public Portfolio findById(Integer portFolioId) {
+    return portfolioRepository.findById(portFolioId)
+        .orElseThrow(() -> new NoPortfolioFoundException("No Portfolio found exception"));
   }
 }

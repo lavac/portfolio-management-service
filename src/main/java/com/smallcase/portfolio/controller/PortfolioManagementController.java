@@ -64,7 +64,7 @@ public class PortfolioManagementController {
 
   @GetMapping("/{portfolioId}")
   public ResponseEntity<List<AggregatedPortfolioInformation>> fetchPortfolio(@PathVariable @Valid @NonNull Integer portfolioId) {
-    List<AggregatedPortfolioInformation> aggregatedPortfolioInformation = portfolioService.fetchPortfolio(portfolioId);
+    List<AggregatedPortfolioInformation> aggregatedPortfolioInformation = portfolioService.fetchPortfolioSummary(portfolioId);
     return ResponseEntity.accepted().body(aggregatedPortfolioInformation);
   }
 
