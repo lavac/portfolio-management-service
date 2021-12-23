@@ -61,6 +61,8 @@ public class SecurityService {
   }
 
   private SecurityInfo getNewSecurityInfo(String tickerSymbol, TradeCreateRequest tradeCreateRequest, Portfolio portfolio) {
+    if(tradeCreateRequest.getTradeType().equals(TradeType.SELL))
+      throw new SecuritySellException("Requested number of shares to sell are more than the actual number of shares");
     return SecurityInfo
         .builder()
         .tickerSymbol(tickerSymbol)

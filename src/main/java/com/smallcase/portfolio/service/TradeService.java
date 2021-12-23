@@ -89,6 +89,7 @@ public class TradeService {
     mergedTrade.setTradeType(existingTrade.getTradeType());
     mergedTrade.setNumberOfShares(existingTrade.getNumberOfShares());
     mergedTrade.setPrice(existingTrade.getPrice());
+    mergedTrade.setPortfolioId(existingTrade.getPortfolioId());
 
     SecurityInfo securityInfo = recoverPreExistingSecurity(existingTrade);
 
