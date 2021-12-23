@@ -6,6 +6,7 @@ import com.smallcase.portfolio.repository.entity.SecurityInfo;
 import com.smallcase.portfolio.repository.entity.Trade;
 
 public class SecurityUtils {
+  public static final double MINIMUM_BUY_PRICE = 1.0;
 
   public static SecurityInfo recoverPreExistingSecurity(Trade existingTrade) {
     SecurityInfo security = existingTrade.getSecurity();
@@ -38,6 +39,9 @@ public class SecurityUtils {
     SecurityInfo security = existingTrade.getSecurity();
     double preExistingAveragePrice = (security.getAveragePrice() * security.getNumberOfShares())
         - (existingTrade.getPrice() * existingTrade.getNumberOfShares());
+    if (preExistingNumberOfShares == 0) {
+      return MINIMUM_BUY_PRICE;
+    }
     return preExistingAveragePrice / preExistingNumberOfShares;
   }
 
